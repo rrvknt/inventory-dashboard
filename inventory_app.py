@@ -1,6 +1,7 @@
 import streamlit as st
 import sqlite3
 import pandas as pd
+from io import BytesIO
 
 from aggrid_style import show_streamlit_style_grid
 
@@ -19,6 +20,24 @@ df = pd.read_sql("SELECT * FROM inventory", conn)
 
 # 🔹 Editable dashboard
 edited_df = show_streamlit_style_grid(df)
+
+# =========================
+# 📥 DOWNLOAD EXCEL BUTTON
+# =========================
+def convert_df_to_excel(df):
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine="openpyxl") as writer:
+        df.to_excel(writer, index=False, sheet_name="Inventory")
+    return output.getvalue()
+
+excel_data = convert_df_to_excel(edited_df)
+
+st.download_button(
+    label="📥 Download Inventory as Excel",
+    data=excel_data,
+    file_name="Inventory_Dashboard_Export.xlsx",
+    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+)
 
 # 🔹 Save button (DB + Excel)
 if st.button("💾 Save Changes"):
